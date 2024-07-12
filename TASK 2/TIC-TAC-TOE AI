@@ -71,7 +71,6 @@ def play_game():
     board = [[' ' for _ in range(3)] for _ in range(3)]
     human, ai = ('X', 'O')
     
-    # Allow the user to choose their symbol
     while True:
         choice = input("Do you want to be X or O? ").upper()
         if choice in ['X', 'O']:
