@@ -12,7 +12,6 @@ def chatbot_response(user_input):
     else:
         return "I'm sorry, I didn't understand that. Can you please rephrase?"
 
-# Test the chatbot
 while True:
     user_input = input("You: ")
     if user_input.lower() in ["bye", "exit", "quit"]:
