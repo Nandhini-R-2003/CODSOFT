@@ -1,0 +1,46 @@
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+data = {
+    'user_id': [1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 4],
+    'book_id': ['B1', 'B2', 'B3', 'B2', 'B3', 'B4', 'B1', 'B3', 'B1', 'B2', 'B3', 'B4'],
+    'rating': [5, 3, 4, 4, 5, 2, 2, 3, 4, 5, 2, 1]
+}
+
+ratings_df = pd.DataFrame(data)
+
+user_book_matrix = ratings_df.pivot_table(index='user_id', columns='book_id', values='rating')
+
+user_book_matrix_filled = user_book_matrix.fillna(0)
+
+
+user_similarity = cosine_similarity(user_book_matrix_filled)
+user_similarity_df = pd.DataFrame(user_similarity, index=user_book_matrix.index, columns=user_book_matrix.index)
+
+def get_book_recommendations(user_ids, user_book_matrix, user_similarity_df, n_recommendations=3):
+    recommendations = {}
+    for user_id in user_ids:
+      
+        similar_users = user_similarity_df[user_id].sort_values(ascending=False).index[1:]
+
+       
+        weighted_ratings = {}
+        for similar_user in similar_users:
+            similarity_score = user_similarity_df.loc[user_id, similar_user]
+            for book in user_book_matrix.columns:
+                if not np.isnan(user_book_matrix.loc[similar_user, book]):
+                    if book not in weighted_ratings:
+                        weighted_ratings[book] = 0
+                    weighted_ratings[book] += user_book_matrix.loc[similar_user, book] * similarity_score
+
+        recommendations[user_id] = sorted(weighted_ratings.items(), key=lambda x: x[1], reverse=True)[:n_recommendations]
+
+    return recommendations
+
+user_ids = [1, 2, 3, 4]
+recommendations = get_book_recommendations(user_ids, user_book_matrix, user_similarity_df, n_recommendations=2)
+
+for user_id, books in recommendations.items():
+    book_list = ', '.join([book for book, score in books])
+    print(f"Recommended books for user {user_id}: {book_list}")
